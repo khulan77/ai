@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { openaiTextToImage } from "@/lib/openai-image-generate";
-import { error } from "console";
 
 export const POST = async (req: Request) => {
   const { prompt } = await req.json();
