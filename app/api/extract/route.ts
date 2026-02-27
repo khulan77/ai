@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
-export const POST = async (req: Request) => {
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
+export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
+    const { prompt, messages } = await req.json();
 
-    if (!prompt) {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 },
-      );
-    }
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
+    if (prompt) {
+      const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           {
@@ -24,27 +18,29 @@ export const POST = async (req: Request) => {
             content: `Extract the dish name and ingredients from: "${prompt}"`,
           },
         ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenAI API error:", errorData);
-      return NextResponse.json(
-        { error: errorData.error?.message || "API Error" },
-        { status: response.status },
-      );
+      });
+      return NextResponse.json({
+        result: completion.choices[0].message.content,
+      });
     }
-
-    const data = await response.json();
-    const text = data.choices[0].message.content;
-
-    return NextResponse.json({ result: text });
-  } catch (err) {
-    console.error("Server Error:", err);
+    if (messages && Array.isArray(messages)) {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages,
+      });
+      return NextResponse.json({
+        reply: completion.choices[0].message.content,
+      });
+    }
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "prompt or messages is required" },
+      { status: 400 },
+    );
+  } catch (error) {
+    console.error("API error:", error);
+    return NextResponse.json(
+      { error: "Something went wrong" },
       { status: 500 },
     );
   }
-};
+}

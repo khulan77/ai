@@ -2,37 +2,44 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY!,
 });
-
-export const POST = async (req: Request) => {
+export async function POST(req: Request) {
   try {
-    const { image } = await req.json();
+    const { prompt, messages } = await req.json();
+    if (prompt) {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: `Extract the dish name and ingredients from: "${prompt}"`,
+          },
+        ],
+      });
+      return NextResponse.json({
+        result: completion.choices[0].message.content,
+      });
+    }
+    if (messages && Array.isArray(messages)) {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages,
+      });
+      return NextResponse.json({
+        reply: completion.choices[0].message.content,
+      });
+    }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Describe this image in detail." },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${image}`,
-              },
-            },
-          ],
-        },
-      ],
-    });
-
-    const caption = response.choices[0].message.content;
-
-    return NextResponse.json({ caption });
+    return NextResponse.json(
+      { error: "prompt or messages is required" },
+      { status: 400 },
+    );
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    console.error("API error:", error);
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 },
+    );
   }
-};
+}
