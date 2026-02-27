@@ -93,17 +93,13 @@ export const FoodGeneration = () => {
           ) : (
             <div className="space-y-6">
               {extractedInfo && (
-                <div className="p-4 border flex flex-wrap items-center gap-2 card rounded-lg shadow-sm bg-white">
-                  <h2 className="mb-3 text-lg font-semibold">Extracted Info</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {extractedInfo.map((item, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="px-3 py-1 text-sm font-medium"
-                      >
-                        {item}
-                      </Badge>
+              <div className="flex flex-wrap  flex-col gap-3 p-4 border rounded-lg card">
+                  <h2 className="mb-2 text-lg gap-2 font-semibold">Extracted Info</h2>
+                  <div className="flex  gap-2">
+                    {extractedInfo.map((info, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        {info}
+                      </div>
                     ))}
                   </div>
                 </div>

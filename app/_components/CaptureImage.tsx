@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import type React from "react";
 import Image from "next/image";
 import { useState } from "react";
@@ -12,27 +12,27 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload } from "lucide-react";
-
+ 
 export function CaptureImage() {
   const [image, setImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [caption, setCaption] = useState<string | null>(null);
-
+ 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
-
+ 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
   };
-
+ 
   const handleDrop = (e: any) => {
     e.preventDefault();
     setIsDragging(false);
-
+ 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type.match("image.*")) {
@@ -47,7 +47,7 @@ export function CaptureImage() {
       }
     }
   };
-
+ 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -61,37 +61,39 @@ export function CaptureImage() {
       reader.readAsDataURL(file);
     }
   };
-
+ 
   const generateCaption = async () => {
     if (!image) return;
-
+ 
     setIsLoading(true);
     setCaption(null);
-
-    try {
-      const response = await fetch("/api/caption", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_url: image,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.output) {
-        setCaption(result.output);
-      } else {
-        setCaption("Тайлбар үүсгэж чадсангүй.");
-      }
-    } catch (error) {
-      console.error(error);
-      setCaption("Холболтын алдаа гарлаа.");
-    } finally {
-      setIsLoading(false);
+ 
+ 
+     try {
+    const response = await fetch("/api/caption", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image_url: image,
+      }),
+    });
+ 
+    const result = await response.json();
+ 
+    if (result.output) {
+      setCaption(result.output);
+    } else {
+      setCaption("Тайлбар үүсгэж чадсангүй.");
     }
-  };
-
+ 
+  } catch (error) {
+    console.error(error);
+    setCaption("Холболтын алдаа гарлаа.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+ 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
       <Card className="w-full max-w-md shadow-lg">
@@ -135,7 +137,7 @@ export function CaptureImage() {
               </div>
             )}
           </div>
-
+ 
           {image && (
             <Button
               className="w-full"
@@ -152,7 +154,7 @@ export function CaptureImage() {
               )}
             </Button>
           )}
-
+ 
           {caption && (
             <div className="p-3 text-center bg-gray-100 rounded-md">
               <p className="text-sm font-medium text-gray-900">{caption}</p>
@@ -166,3 +168,4 @@ export function CaptureImage() {
     </div>
   );
 }
+ 
